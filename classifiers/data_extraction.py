@@ -6,7 +6,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.tree import DecisionTreeClassifier
 import pickle
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import tree
 
+from sklearn import svm, datasets
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import plot_confusion_matrix
 
 dataframe = pd.read_csv('../data/Chicago_Crimes_2012_to_2017.csv')
 dataframe.fillna(method='ffill', inplace=True)
@@ -89,7 +95,7 @@ for type in range(len(type_of_crimes)):
 
 text_clf = Pipeline([
     ('tfidf', TfidfVectorizer()),
-    ('clf', DecisionTreeClassifier())
+    ('clf', DecisionTreeClassifier(random_state=0))
 ])
 
 train = description[:700]
@@ -98,12 +104,25 @@ train_type = type_of_crimes[:700]
 test_type = type_of_crimes[700:]
 
 text_clf.fit(train, train_type)
+titles_options = [("Confusion matrix, without normalization", None),
+                  ("Normalized confusion matrix", 'true')]
+for title, normalize in titles_options:
+    disp = plot_confusion_matrix(text_clf, test, test_type,
+                                 cmap=plt.cm.Blues,
+                                 normalize=normalize)
+    disp.ax_.set_title(title)
+
+    print(title)
+    print(disp.confusion_matrix)
+
+plt.show()
 
 
-filename = 'finalized_model.sav'
-pickle.dump(text_clf, open(filename, 'wb'))
-# print('DecisionTreeClassifier')
-# print('accuracy_score:')
-# print(accuracy_score(test_type, preds))
+preds = text_clf.predict(test)
+# filename = 'finalized_model.sav'
+# pickle.dump(text_clf, open(filename, 'wb'))
+print('DecisionTreeClassifier')
+print('accuracy_score:')
+print(accuracy_score(test_type, preds))
 # print('confusion_matrix:')
 # print(confusion_matrix(test_type, preds))
