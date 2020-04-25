@@ -9,7 +9,9 @@ import pickle
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+import nltk
 
+nltk.download('stopwords')
 
 db_main = pymongo.MongoClient('mongodb+srv://police-department:1234567890@police-department-jezpl.mongodb.net/test?retryWrites=true&w=majority')
 db = db_main["users"]
