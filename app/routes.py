@@ -1,11 +1,15 @@
-from flask import render_template, redirect, jsonify, request, json, flash, url_for, session
-from flask_login import login_required, current_user, login_user
+from flask import render_template, redirect, request, flash, url_for, session
 from app import app
 import pymongo
 import hashlib
 from datetime import datetime
 from app.forms import LoginForm, RegistrationForm, ApplicationForm
 from app.locations import lc
+import pickle
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
 
 db_main = pymongo.MongoClient('mongodb+srv://police-department:1234567890@police-department-jezpl.mongodb.net/test?retryWrites=true&w=majority')
 db = db_main["users"]
@@ -23,11 +27,24 @@ def index():
 
 @app.route('/same_applications')
 def same_applications():
-    if session['rank'] != 'work2':
-        error = True
-    else:
-        error = False
-    return render_template('predict.html', error=error)
+
+    return render_template('same_applications.html')
+
+@app.route('/database')
+def database():
+    data_app = applic.find({})
+    open = list()
+    finished = list()
+    closed = list()
+    for data in data_app:
+        if data['status'] == 'Open':
+            open.append(data)
+        elif data['status'] == 'Finished':
+            finished.append(data)
+        elif data['status'] == 'Closed':
+            closed.append(data)
+
+    return render_template('database.html', open=open, finished=finished, closed=closed)
 
 @app.route('/application', methods=["GET", "POST"])
 def applications():
@@ -42,10 +59,22 @@ def applications():
         check = None
         status = 'Not reviewed'
 
+        lemmatizer = WordNetLemmatizer()
+        stop_words = set(stopwords.words('english'))
+        word_tokens = word_tokenize(application)
+        filtered_sentence = [w for w in word_tokens if not w in stop_words]
+        singles = ' '.join([lemmatizer.lemmatize(plural).upper() for plural in filtered_sentence])
+
+
+        loaded_model = pickle.load(open('classifiers/finalized_model.sav', 'rb'))
+        result = loaded_model.predict([singles])
+        result = int(result[0])
+
         applic_id = applic.insert_one({
             'username': username,
             'locations': locations,
             'application': application,
+            'classifier': result,
             'created': created,
             'level': level,
             'history': history,
@@ -67,14 +96,7 @@ def profile():
         precinct = None
         investigator = None
         prosecutor = None
-        # rank=list()
-        # for d in data_main:
-        #     rank.append(d['rank'])
-        #
-        # print(rank)
 
-
-        # data_app = applic.find({'level': rank[0], 'check': None})
         data_app = applic.find({})
         new = list()
         your = list()
@@ -113,18 +135,41 @@ def check_precinct():
             history = line['history']
             applic.update_one({'application': text},
                           {"$set": {"history": history + [session['username']], 'check': session['username'], 'status': 'Open'}})
+    elif session['rank'] == 'worker3':
+        for line in applic.find({'application': text}):
+            history = line['history']
+            applic.update_one({'application': text},
+                          {"$set": {"history": history + [session['username']], 'check': session['username'], 'status': 'Open'}})
     flash('You approved the application!')
     return redirect('/profile')
 
 @app.route('/send_precinct')
 def send_precinct():
     text = request.args.get('text')
-    if session['rank'] == 'worker2':
-        for line in applic.find({'application': text}):
-            history = line['history']
-            applic.update_one({'application': text},
+    if session['rank'] == 'worker2.1' or session['rank'] == 'worker2.2' or session['rank'] == 'worker2.3':
+        applic.update_one({'application': text},
                               {"$set": {'check': None , 'level': 'worker3'}})
-    flash('You sent the application!')
+        flash('You sent the application!')
+
+    elif session['rank'] == 'worker3':
+        applic.update_one({'application': text},
+                              {"$set": {'check': None , 'level': 'end', 'status': 'Finished'}})
+        flash('You finished this case!')
+    return redirect('/profile')
+
+@app.route('/delete')
+def delete():
+    text = request.args.get('text')
+    applic.delete_one({'application': text})
+    flash("You deleted the application!")
+    return redirect('/profile')
+
+@app.route('/close')
+def close():
+    text = request.args.get('text')
+    applic.update_one({'application': text},
+                          {"$set": {'check': None, 'level': 'end', 'status': 'Closed'}})
+    flash("You closed the case!")
     return redirect('/profile')
 
 @app.route('/choose_investigator')
@@ -132,6 +177,7 @@ def choose_investigator():
     text = request.args.get('text')
     investigator = request.args.get('investigator')
     applic.update_one({'application': text}, {"$set": {'level': investigator, 'check': None}})
+    flash("You sent application to investigator!")
     return redirect('/profile')
 
 @app.route('/login/', methods=["GET", "POST"])
