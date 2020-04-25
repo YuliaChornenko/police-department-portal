@@ -33,7 +33,7 @@
           {% for data in data %}
         <li class="list-group-item">Username: {{ data['username'] }}</li>
         <li class="list-group-item">Email: {{ data['email'] }}</li>
-        <li class="list-group-item">Rank: {{ data['rank_Show'] }}</li>
+        <li class="list-group-item">Rank: {{ data['rank_show'] }}</li>
           {% endfor %}
       </ul>
         <button type="button" class="btn btn-outline-info">Edit</button>
@@ -81,19 +81,21 @@
                <li class="list-group-item">
                     <div align="center">
                    <div class="btn-group dropright">
-                      <a type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Choose an investigator
-                      </a>
+                      </button>
                       <div class="dropdown-menu">
-                          <a class="dropdown-item" href="#">Killing Investigator</a>
-                          <a class="dropdown-item" href="#">Theft Investigator</a>
-                          <a class="dropdown-item" href="#">Abduction Investigator</a>
+                          <a class="dropdown-item" href="{{ url_for('choose_investigator', investigator='worker2.1', text=data['application']) }}">Killing Investigator</a>
+                          <a class="dropdown-item" href="{{ url_for('choose_investigator', investigator='worker2.2', text=data['application']) }}">Theft Investigator</a>
+                          <a class="dropdown-item" href="{{ url_for('choose_investigator', investigator='worker2.3', text=data['application']) }}">Abduction Investigator</a>
                       </div>
                     </div>
                     </div>
                </li>
                {% endif %}
+               {% if investigator %}
                <li class="list-group-item"><div align='center' ><a href="{{ url_for('send_precinct', text=data['application']) }}" type="button" class="btn btn-outline-success btn-lg">Send</a><a type="button" class="btn btn-outline-danger btn-lg">Delete</a></div></li>
+               {% endif %}
            </ul>
 
            </div>
@@ -101,6 +103,7 @@
        {% endfor %}
     </div>
 </div>
+
 
 {% endif %}
 {% endblock %}

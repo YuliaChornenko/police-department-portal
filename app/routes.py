@@ -5,6 +5,7 @@ import pymongo
 import hashlib
 from datetime import datetime
 from app.forms import LoginForm, RegistrationForm, ApplicationForm
+from app.locations import lc
 
 db_main = pymongo.MongoClient('mongodb+srv://police-department:1234567890@police-department-jezpl.mongodb.net/test?retryWrites=true&w=majority')
 db = db_main["users"]
@@ -20,8 +21,8 @@ applic = applic['applications']
 def index():
     return render_template('index.html')
 
-@app.route('/predict')
-def predict():
+@app.route('/same_applications')
+def same_applications():
     if session['rank'] != 'work2':
         error = True
     else:
@@ -33,6 +34,7 @@ def applications():
     form = ApplicationForm(request.form)
     if request.method == "POST":
         username = form.username.data
+        locations = request.form.getlist('loc')
         application = form.application.data
         created = datetime.utcnow()
         level = 'worker1'
@@ -42,6 +44,7 @@ def applications():
 
         applic_id = applic.insert_one({
             'username': username,
+            'locations': locations,
             'application': application,
             'created': created,
             'level': level,
@@ -52,7 +55,7 @@ def applications():
 
         flash('Thanks for application!')
         return redirect('/index')
-    return render_template('application.html', form=form)
+    return render_template('application.html', form=form, locations=lc)
 
 @app.route('/profile')
 def profile():
@@ -105,7 +108,7 @@ def check_precinct():
     text = request.args.get('text')
     if session['rank'] == 'worker1':
         applic.update_one({'application': text}, { "$set": { "history": [session['username']], 'check': session['username'] } })
-    elif session['rank'] == 'worker2':
+    elif session['rank'] == 'worker2.1' or session['rank'] == 'worker2.2' or session['rank'] == 'worker2.3':
         for line in applic.find({'application': text}):
             history = line['history']
             applic.update_one({'application': text},
@@ -116,14 +119,19 @@ def check_precinct():
 @app.route('/send_precinct')
 def send_precinct():
     text = request.args.get('text')
-    if session['rank'] == 'worker1':
-        applic.update_one({'application': text}, { "$set": {'check': None , 'level': 'worker2'} })
-    elif session['rank'] == 'worker2':
+    if session['rank'] == 'worker2':
         for line in applic.find({'application': text}):
             history = line['history']
             applic.update_one({'application': text},
                               {"$set": {'check': None , 'level': 'worker3'}})
     flash('You sent the application!')
+    return redirect('/profile')
+
+@app.route('/choose_investigator')
+def choose_investigator():
+    text = request.args.get('text')
+    investigator = request.args.get('investigator')
+    applic.update_one({'application': text}, {"$set": {'level': investigator, 'check': None}})
     return redirect('/profile')
 
 @app.route('/login/', methods=["GET", "POST"])
@@ -151,6 +159,8 @@ def login():
 @app.route('/logout/')
 def logout():
     session.pop('username', None)
+    session.pop('password', None)
+    session.pop('rank', None)
     return redirect(url_for('index'))
 
 
@@ -206,11 +216,10 @@ def register_page():
             user_id = db.insert_one({
                 'username': username,
                 'rank': rank,
-                'rank_Show': rank_show,
+                'rank_show': rank_show,
                 'email': email,
                 'password': password,
                 'created': created,
-                'admin': admin,
             })
 
             flash('Thanks for registering')
