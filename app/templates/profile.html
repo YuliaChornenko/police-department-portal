@@ -40,8 +40,7 @@
         {% if form %}
         <form action="/photo" method='post' enctype="multipart/form-data">
             <li class="list-group-item"><input name="file" type="file" id="file"></li>
-            <button type="button" class="btn btn-outline-info">Save</button>
-            <input type = "submit"/>
+            <input type='submit' value="Send" class="btn btn-outline-info btn-lg">
         </form>
         {% else %}
         <a type="button" class="btn btn-outline-info" href="{{ url_for('profile', edit='True') }}">Edit</a>
