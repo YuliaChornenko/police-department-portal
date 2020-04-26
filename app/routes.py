@@ -9,6 +9,11 @@ import pickle
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+import nltk
+from Cryptodome.Cipher import PKCS1_OAEP
+from Cryptodome.PublicKey import RSA
+import re
+
 
 
 db_main = pymongo.MongoClient('mongodb+srv://police-department:1234567890@police-department-jezpl.mongodb.net/test?retryWrites=true&w=majority')
@@ -314,11 +319,34 @@ def register_page():
                     return redirect(url_for('register_page'))
                 else:
                     break
-            password = str(hashlib.md5(str(form.password.data).encode()).hexdigest())
+
+            if (re.match(r'\S+@\S+', email)):
+                pass
+            else:
+                flash('Invalid email address! Try again!')
+                return redirect(url_for('register_page'))
+
+            password = form.password.data
+            confirm = form.confirm.data
+
+            if password == confirm:
+                pass
+            else:
+                flash('Passwords must match! Try again!')
+                return redirect(url_for('register_page'))
+
+            if (re.match(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!#%*?&]{6,20}$',password)):
+                pass
+            else:
+                flash('Password is not strong enough! Try again!')
+                return redirect(url_for('register_page'))
+
+            password = str(hashlib.md5(str(password).encode()).hexdigest())
             created = datetime.utcnow()
             admin = False
             key = form.key.data
             query = settings.find({})
+
             for data in query:
                 if key in data.values():
                     index = list(data.values()).index(key)
@@ -342,6 +370,8 @@ def register_page():
             session['username'] = username
             session['password'] = password
 
+            privatekey = RSA.generate(2048)
+            publickey = privatekey.publickey()
 
             user_id = db.insert_one({
                 'username': username,
@@ -350,6 +380,8 @@ def register_page():
                 'email': email,
                 'password': password,
                 'created': created,
+                'privatekey': str(bytes(privatekey.exportKey('PEM'))),
+                'publickey': str(bytes(publickey.exportKey('PEM')))
             })
 
             flash('Thanks for registering')
