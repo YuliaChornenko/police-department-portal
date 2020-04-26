@@ -9,9 +9,7 @@ import pickle
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-import nltk
 
-nltk.download('stopwords')
 
 db_main = pymongo.MongoClient('mongodb+srv://police-department:1234567890@police-department-jezpl.mongodb.net/test?retryWrites=true&w=majority')
 db = db_main["users"]
@@ -29,8 +27,18 @@ def index():
 
 @app.route('/same_applications')
 def same_applications():
+    cat = request.args.get('cat')
 
-    return render_template('same_applications.html')
+    data_app = applic.find({})
+    your = list()
+    same = list()
+    for data in data_app:
+        if data['classifier'] == cat:
+            same.append(data)
+        if (data['level'] == session['rank']) and (data['check'] == session['username']):
+            your.append(data)
+
+    return render_template('same_applications.html', new=your, same=same)
 
 @app.route('/database')
 def database():
@@ -69,8 +77,77 @@ def applications():
 
 
         loaded_model = pickle.load(open('classifiers/finalized_model.sav', 'rb'))
-        result = loaded_model.predict([singles])
-        result = int(result[0])
+        pred = loaded_model.predict([singles])
+        pred = int(pred[0])
+
+        if pred == 0:
+            result = 'GAMBLING'
+        elif pred == 1:
+            result = 'HUMAN TRAFFICKING'
+        elif pred == 2:
+            result = 'NON-CRIMINAL'
+        elif pred == 3:
+            result = 'PUBLIC INDECENCY'
+        elif pred == 4:
+            result = 'NARCOTICS'
+        elif pred == 5:
+            result = 'NON-CRIMINAL (SUBJECT SPECIFIED)'
+        elif pred == 6:
+            result = 'MOTOR VEHICLE THEFT'
+        elif pred == 7:
+            result = 'DECEPTIVE PRACTICE'
+        elif pred == 8:
+            result = 'OTHER OFFENSE'
+        elif pred == 9:
+            result = 'THEFT'
+        elif pred == 10:
+            result = 'HOMICIDE'
+        elif pred == 11:
+            result = 'ARSON'
+        elif pred == 12:
+            result = 'PUBLIC PEACE VIOLATION'
+        elif pred == 13:
+            result = 'INTIMIDATION'
+        elif pred == 14:
+            result = 'CONCEALED CARRY LICENSE VIOLATION'
+        elif pred == 15:
+            result = 'PROSTITUTION'
+        elif pred == 16:
+            result = 'CRIM SEXUAL ASSAULT'
+        elif pred == 17:
+            result = 'KIDNAPPING'
+        elif pred == 18:
+            result = 'STALKING'
+        elif pred == 19:
+            result = 'OTHER NARCOTIC VIOLATION'
+        elif pred == 20:
+            result = 'BATTERY'
+        elif pred == 21:
+            result = 'ASSAULT'
+        elif pred == 22:
+            result = 'BURGLARY'
+        elif pred == 23:
+            result = 'CRIMINAL TRESPASS'
+        elif pred == 24:
+            result = 'ROBBERY'
+        elif pred == 25:
+            result = 'INTERFERENCE WITH PUBLIC OFFICER'
+        elif pred == 26:
+            result = 'CRIMINAL DAMAGE'
+        elif pred == 27:
+            result = 'OFFENSE INVOLVING CHILDREN'
+        elif pred == 28:
+            result = 'SEX OFFENSE'
+        elif pred == 29:
+            result = 'OBSCENITY'
+        elif pred == 30:
+            result = 'NON - CRIMINAL'
+        elif pred == 31:
+            result = 'WEAPONS VIOLATION'
+        elif pred == 32:
+            result = 'LIQUOR LAW VIOLATION'
+        else:
+            result = 'OTHER'
 
         applic_id = applic.insert_one({
             'username': username,
@@ -197,10 +274,11 @@ def login():
         for data in query:
             session['rank'] = data['rank']
 
-        if query:
-            return redirect('/profile')
-        flash("Invalid username/password", 'error')
-        return redirect(url_for('login'))
+            if data['username']:
+                return redirect('/profile')
+            else:
+                flash("Invalid username/password")
+                return redirect(url_for('login'))
 
     return render_template('login.html', title='Sign In', form=form)
 
