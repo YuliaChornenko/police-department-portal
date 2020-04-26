@@ -1,19 +1,9 @@
-# import pickle
-#
-#
-# loaded_model = pickle.load(open('classifiers/finalized_model.sav', 'rb'))
-#
-# result = loaded_model.predict(['BATTERY DOMESTIC BATTERY SIMPLE APARTMENT'])
-# print(result)
+from Cryptodome.Cipher import PKCS1_OAEP
+from Cryptodome.PublicKey import RSA
 
-# import pymongo
-#
-# db_main = pymongo.MongoClient('mongodb+srv://police-department:1234567890@police-department-jezpl.mongodb.net/test?retryWrites=true&w=majority')
-#
-# applic = db_main['applications']
-# applic = applic['applications']
-#
-# applic.delete_one({'application': 'test'})
+privatekey = RSA.generate(2048)
+privatekey_final = bytes(privatekey.exportKey('PEM'))
+publickey = privatekey.publickey()
+publickey_final = bytes(publickey.exportKey('PEM'))
 
-a= 'aaa     '.strip()
-print(a)
+
