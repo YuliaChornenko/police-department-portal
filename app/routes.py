@@ -1,4 +1,9 @@
+import os
+
 from flask import render_template, redirect, request, flash, url_for, session
+from werkzeug.datastructures import CombinedMultiDict
+from werkzeug.utils import secure_filename
+
 from app import app
 import pymongo
 import hashlib
@@ -13,7 +18,6 @@ import nltk
 from Cryptodome.Cipher import PKCS1_OAEP
 from Cryptodome.PublicKey import RSA
 import re
-
 
 
 db_main = pymongo.MongoClient('mongodb+srv://police-department:1234567890@police-department-jezpl.mongodb.net/test?retryWrites=true&w=majority')
@@ -174,7 +178,7 @@ def applications():
         return redirect('/index')
     return render_template('application.html', form=form, locations=lc)
 
-@app.route('/profile')
+@app.route('/profile', methods=["GET", "POST"])
 def profile():
     try:
         data_main = db.find({'username': session['username'],
@@ -201,6 +205,13 @@ def profile():
         elif session['rank'] == 'worker3':
             prosecutor = True
 
+        edit = request.args.get('edit')
+        if edit == 'True':
+            form = True
+
+        else:
+            form = None
+
 
     except:
         data_main = None
@@ -210,8 +221,20 @@ def profile():
         precinct = None
         investigator = None
         prosecutor = None
+        form = None
 
-    return render_template('profile.html', data=data_main, error=error, new=new, your=your, precinct=precinct, investigator=investigator, prosecutor=prosecutor)
+    return render_template('profile.html', data=data_main, error=error, new=new, your=your, precinct=precinct, investigator=investigator, prosecutor=prosecutor, form=form)
+
+
+@app.route('/photo', methods=["GET", "POST"])
+def photo():
+    if request.method == 'POST':
+        f = request.files['file']
+        f.save(os.path.join('app/static', secure_filename(session['username'] + '.png')))
+        db.update_one({'username': session['username'], 'password': session['password']},
+                          {"$set": {"photo": 'static/' + session['username'] + '.png'}})
+        flash('You updated the photo!')
+    return redirect('/profile')
 
 @app.route('/check_precinct')
 def check_precinct():
@@ -296,6 +319,7 @@ def logout():
     session.pop('username', None)
     session.pop('password', None)
     session.pop('rank', None)
+    flash('You logout from account!')
     return redirect(url_for('index'))
 
 
@@ -373,8 +397,11 @@ def register_page():
             privatekey = RSA.generate(2048)
             publickey = privatekey.publickey()
 
+            photo = '/static/unnamed.png'
+
             user_id = db.insert_one({
                 'username': username,
+                'photo': photo,
                 'rank': rank,
                 'rank_show': rank_show,
                 'email': email,

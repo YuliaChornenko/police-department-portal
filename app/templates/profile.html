@@ -31,13 +31,21 @@
       </div>
       <ul class="list-group list-group-flush">
           {% for data in data %}
-          <li class="list-group-item"><img src="/static/unnamed.png" width="280" height="300" /></li>
+          <li class="list-group-item"><img src="{{ data['photo'] }}" width="280" height="300" /></li>
         <li class="list-group-item">Username: {{ data['username'] }}</li>
         <li class="list-group-item">Email: {{ data['email'] }}</li>
         <li class="list-group-item">Rank: {{ data['rank_show'] }}</li>
           {% endfor %}
       </ul>
-        <button type="button" class="btn btn-outline-info" href="">Edit</button>
+        {% if form %}
+        <form action="/photo" method='post' enctype="multipart/form-data">
+            <li class="list-group-item"><input name="file" type="file" id="file"></li>
+            <button type="button" class="btn btn-outline-info">Save</button>
+            <input type = "submit"/>
+        </form>
+        {% else %}
+        <a type="button" class="btn btn-outline-info" href="{{ url_for('profile', edit='True') }}">Edit</a>
+        {% endif %}
     </div>
     </div>
    <div class="col">
