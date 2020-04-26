@@ -37,7 +37,7 @@
         <li class="list-group-item">Rank: {{ data['rank_show'] }}</li>
           {% endfor %}
       </ul>
-        <button type="button" class="btn btn-outline-info">Edit</button>
+        <button type="button" class="btn btn-outline-info" href="">Edit</button>
     </div>
     </div>
    <div class="col">
@@ -50,8 +50,10 @@
                 Application №   : {{ data['_id'] }}
               </div>
            <ul class="list-group list-group-flush">
-                <li class="list-group-item">Username: {{ data['username'] }}</li>
+                <li class="list-group-item">Full name: {{ data['first_name'] }} {{ data['second_name'] }}</li>
+               <li class="list-group-item">Phone: {{ data['phone'] }}</li>
                 <li class="list-group-item">Application: {{ data['application'] }}</li>
+                <li class="list-group-item">Location: {{ data['locations'] }}</li>
                 <li class="list-group-item">Created: {{ data['created'] }}</li>
                <li class="list-group-item">Status: {{ data['status'] }}</li>
                <li class="list-group-item">Checker: {{ data['check'] }}</li>
@@ -73,8 +75,10 @@
                 Application №   : {{ data['_id'] }}
               </div>
            <ul class="list-group list-group-flush">
-                <li class="list-group-item">Username: {{ data['username'] }}</li>
+                <li class="list-group-item">Full name: {{ data['first_name'] }}  {{ data['second_name'] }}</li>
+               <li class="list-group-item">Phone: {{ data['phone'] }}</li>
                 <li class="list-group-item">Application: {{ data['application'] }}</li>
+               <li class="list-group-item">Location: {{ data['locations'] }}</li>
                 <li class="list-group-item">Created: {{ data['created'] }}</li>
                <li class="list-group-item">Status: {{ data['status'] }}</li>
                <li class="list-group-item">Checker: {{ data['check'] }}</li>

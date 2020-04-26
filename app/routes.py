@@ -60,7 +60,9 @@ def database():
 def applications():
     form = ApplicationForm(request.form)
     if request.method == "POST":
-        username = form.username.data
+        first_name = form.first_name.data
+        second_name = form.second_name.data
+        phone = form.phone.data
         locations = request.form.getlist('loc')
         application = form.application.data
         created = datetime.utcnow()
@@ -150,7 +152,9 @@ def applications():
             result = 'OTHER'
 
         applic_id = applic.insert_one({
-            'username': username,
+            'first_name': first_name,
+            'second_name': second_name,
+            'phone': phone,
             'locations': locations,
             'application': application,
             'classifier': result,

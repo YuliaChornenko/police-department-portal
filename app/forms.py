@@ -22,8 +22,10 @@ class RegistrationForm(FlaskForm):
                               [DataRequired()])
 
 class ApplicationForm(FlaskForm):
-    username = StringField('Username', [validators.Length(min=4, max=60)])
-    location = StringField('Location', )
+    first_name = StringField('First name', [validators.Length(min=4, max=60)])
+    second_name = StringField('Second name', [validators.Length(min=4, max=60)])
+    phone = StringField('Phone')
+    location = StringField('Location')
     application = TextAreaField('Application')
     accept_tos = BooleanField('I accept the Terms of Service and Privacy Notice (updated Jan 22, 2015)',
                               [DataRequired()])
