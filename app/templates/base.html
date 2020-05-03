@@ -16,13 +16,13 @@
                     <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
                         <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
                             <li class="nav-item">
-                                <a class="nav-link" href="/">Главная</a>
+                                <a class="nav-link" href="/">Main</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Шаблоны заявлений</a>
+                                <a class="nav-link" href="/uploads">Application Templates</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="/application">Написать заявление</a>
+                                <a class="nav-link" href="/application">Apply Application</a>
                             </li>
                              {% if 'worker3' in [session['rank']] %}
                              <li class="nav-item">
@@ -38,7 +38,7 @@
                             </li>
                             {% else %}
                             <li class="nav-item">
-                                <a class="nav-link" href="/login">Вход для сотрудников</a>
+                                <a class="nav-link" href="/login">Entry for employees</a>
                             </li>
                             {% endif %}
                         </ul>
