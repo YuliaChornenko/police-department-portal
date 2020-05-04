@@ -14,11 +14,23 @@ import pickle
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+from Cryptodome.Signature import PKCS1_v1_5
+from Cryptodome.Hash import SHA
+from Cryptodome.PublicKey import RSA
+from Cryptodome.Cipher import PKCS1_OAEP
 import nltk
 from Cryptodome.Cipher import PKCS1_OAEP
 from Cryptodome.PublicKey import RSA
+from Cryptodome.Cipher import AES
+from Cryptodome import Random
+from Cryptodome.Cipher import PKCS1_OAEP
+from Cryptodome.PublicKey import RSA
+from Cryptodome.Cipher import AES
+from Cryptodome import Random
+from Cryptodome.Cipher import PKCS1_OAEP
+from Cryptodome.PublicKey import RSA
 import re
-
+from bson.objectid import ObjectId
 
 db_main = pymongo.MongoClient('mongodb+srv://police-department:1234567890@police-department-jezpl.mongodb.net/test?retryWrites=true&w=majority')
 db = db_main["users"]
@@ -239,6 +251,7 @@ def photo():
 @app.route('/check_precinct')
 def check_precinct():
     text = request.args.get('text')
+    id = ObjectId(request.args.get('id'))
     if session['rank'] == 'worker1':
         applic.update_one({'application': text}, { "$set": { "history": [session['username']], 'check': session['username'] } })
     elif session['rank'] == 'worker2.1' or session['rank'] == 'worker2.2' or session['rank'] == 'worker2.3':
@@ -247,38 +260,77 @@ def check_precinct():
             applic.update_one({'application': text},
                           {"$set": {"history": history + [session['username']], 'check': session['username'], 'status': 'Open'}})
     elif session['rank'] == 'worker3':
-        for line in applic.find({'application': text}):
+        privatekey = RSA.importKey(db.find_one({'rank': 'worker3'})['privatekey'])
+        cipherrsa = PKCS1_OAEP.new(privatekey)
+        print(applic.find_one({'_id': id})['sessionkey'])
+        print(type(applic.find_one({'_id': id})['sessionkey']))
+        sessionkey = cipherrsa.decrypt(applic.find_one({'_id': id})['sessionkey'])
+        ciphertext = applic.find_one({'_id': id})['application']
+        iv = ciphertext[:16]
+        obj = AES.new(sessionkey, AES.MODE_CFB, iv)
+        plaintext = obj.decrypt(ciphertext)
+        plaintext = plaintext[16:]
+        plaintext = bytes(plaintext)
+        signature = applic.find_one({'_id': id})['signature']
+        sig = cipherrsa.decrypt(signature[:256])
+        sig = sig + cipherrsa.decrypt(signature[256:])
+        publickey = RSA.importKey(applic.find_one({'_id': id})['publickey1'])
+        myhash = SHA.new(plaintext)
+        signature = PKCS1_v1_5.new(publickey)
+        test = signature.verify(myhash, sig)
+        for line in applic.find({'_id': id}):
             history = line['history']
-            applic.update_one({'application': text},
-                          {"$set": {"history": history + [session['username']], 'check': session['username'], 'status': 'Open'}})
+            applic.update_one({'_id': id},
+                          {"$set": {'history': history + [session['username']], 'check': session['username'], 'status': 'Open',
+                                    'application': str(plaintext)[2:-1]}})
     flash('You approved the application!')
     return redirect('/profile')
 
 @app.route('/send_precinct')
 def send_precinct():
+    id = ObjectId(request.args.get('id'))
     text = request.args.get('text')
     if session['rank'] == 'worker2.1' or session['rank'] == 'worker2.2' or session['rank'] == 'worker2.3':
+        privatekey = RSA.importKey(db.find_one({'username': session['username']})['privatekey'])
+        myhash = SHA.new(bytes(text, encoding='ascii'))
+        signature = PKCS1_v1_5.new(privatekey)
+        signature = signature.sign(myhash)
+        publickey = RSA.importKey(db.find_one({'rank': 'worker3'})['publickey'])
+        cipherrsa = PKCS1_OAEP.new(publickey)
+        sig = cipherrsa.encrypt(signature[:128])
+        sig = sig + cipherrsa.encrypt(signature[128:])
+        sig = bytes(sig)
+        sessionkey = Random.new().read(32)
+        iv = Random.new().read(16)
+        obj = AES.new(sessionkey, AES.MODE_CFB, iv)
+        ciphertext = iv + obj.encrypt(bytes(text, encoding='ascii')) #bytes encoding
+        ciphertext = bytes(ciphertext)
+        sessionkey = cipherrsa.encrypt(sessionkey)
+        sessionkey = bytes(sessionkey)
         applic.update_one({'application': text},
-                              {"$set": {'check': None , 'level': 'worker3'}})
+                              {"$set": {'check': None , 'level': 'worker3',
+                                        'sessionkey': sessionkey, 'application': ciphertext, 'signature': sig, 'publickey1': db.find_one({'username': session['username']})['publickey']}})
+
+
         flash('You sent the application!')
 
     elif session['rank'] == 'worker3':
-        applic.update_one({'application': text},
+        applic.update_one({'_id': id},
                               {"$set": {'check': None , 'level': 'end', 'status': 'Finished'}})
         flash('You finished this case!')
     return redirect('/profile')
 
 @app.route('/delete')
 def delete():
-    text = request.args.get('text')
-    applic.delete_one({'application': text})
+    id = ObjectId(request.args.get('id'))
+    applic.delete_one({'_id': id})
     flash("You deleted the application!")
     return redirect('/profile')
 
 @app.route('/close')
 def close():
-    text = request.args.get('text')
-    applic.update_one({'application': text},
+    id = ObjectId(request.args.get('id'))
+    applic.update_one({'_id': id},
                           {"$set": {'check': None, 'level': 'end', 'status': 'Closed'}})
     flash("You closed the case!")
     return redirect('/profile')
@@ -381,6 +433,11 @@ def register_page():
                         rank_show = 'Precinct'
                     elif rank == 'worker3':
                         rank_show = 'Prosecutor'
+                        query1 = db.find_one({'rank': rank})
+                        print(query1)
+                        if query1:
+                            flash('Sorry, the prosecutor is already registered!')
+                            return redirect(url_for('register_page'))
                     elif rank == 'worker2.1':
                         rank_show = 'Killing Investigator'
                     elif rank == 'worker2.2':
@@ -407,12 +464,11 @@ def register_page():
                 'email': email,
                 'password': password,
                 'created': created,
-                'privatekey': str(bytes(privatekey.exportKey('PEM'))),
-                'publickey': str(bytes(publickey.exportKey('PEM')))
+                'privatekey': bytes(privatekey.exportKey('PEM')),
+                'publickey': bytes(publickey.exportKey('PEM'))
             })
 
             flash('Thanks for registering')
             return redirect('/profile')
 
         return render_template("register.html", form=form)
-

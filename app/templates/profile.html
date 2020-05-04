@@ -66,7 +66,7 @@
                <li class="list-group-item">Checker: {{ data['check'] }}</li>
                <li class="list-group-item">Classifier: {{ data['classifier'] }}</li>
                <li class="list-group-item">History of check: {{ data['history'] }}</li>
-               <li class="list-group-item"><div align='center' ><a href="{{ url_for('check_precinct', text=data['application']) }}" type="button" class="btn btn-outline-success btn-lg">Check</a><a href="{{ url_for('delete', text=data['application']) }}" type="button" class="btn btn-outline-danger btn-lg">Delete</a></div></li>
+               <li class="list-group-item"><div align='center' ><a href="{{ url_for('check_precinct', text=data['application'], id=data['_id']) }}" type="button" class="btn btn-outline-success btn-lg">Check</a><a href="{{ url_for('delete', text=data['application']) }}" type="button" class="btn btn-outline-danger btn-lg">Delete</a></div></li>
            </ul>
            </div>
            <p>   </p>
