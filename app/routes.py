@@ -319,8 +319,7 @@ def send_precinct():
         flash('You sent the application!')
 
     elif session['rank'] == 'worker3':
-        applic.update_one({'_id': id},
-                              {"$set": {'check': None , 'level': 'end', 'status': 'Finished'}})
+        applic.update_one({'_id': id}, {"$set": {'check': None , 'level': 'end', 'status': 'Finished'}})
         flash('You finished this case!')
     return redirect('/profile')
 
