@@ -1,6 +1,6 @@
 import os
 
-from flask import render_template, redirect, request, flash, url_for, session
+from flask import render_template, redirect, request, flash, url_for, session, send_from_directory, send_file
 from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.utils import secure_filename
 
@@ -45,6 +45,10 @@ applic = applic['applications']
 @app.route('/index')
 def index():
     return render_template('index.html')
+
+@app.route('/uploads', methods=['GET', 'POST'])
+def download():
+    return send_file('files/application_templates.pdf', as_attachment=True)
 
 @app.route('/same_applications')
 def same_applications():
