@@ -5,14 +5,9 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.tree import DecisionTreeClassifier
-import pickle
-import numpy as np
 import matplotlib.pyplot as plt
-from sklearn import tree
-
-from sklearn import svm, datasets
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import plot_confusion_matrix
+
 
 dataframe = pd.read_csv('../data/Chicago_Crimes_2012_to_2017.csv')
 dataframe.fillna(method='ffill', inplace=True)
@@ -116,7 +111,6 @@ for title, normalize in titles_options:
     print(disp.confusion_matrix)
 
 plt.show()
-
 
 preds = text_clf.predict(test)
 # filename = 'finalized_model.sav'

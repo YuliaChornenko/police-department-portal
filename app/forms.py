@@ -5,7 +5,6 @@ from wtforms.validators import DataRequired, Email
 from wtforms import validators
 
 
-
 class LoginForm(FlaskForm):
     username = StringField('Username', [validators.Length(min=4, max=20)])
     password = PasswordField('Password', [validators.Length(min=6, max=50)])
@@ -14,7 +13,8 @@ class LoginForm(FlaskForm):
 class RegistrationForm(FlaskForm):
     username = StringField('Username', [validators.Length(min=4, max=20)])
     email = StringField('Email Address', [Email(message=('Not a valid email address!', )), DataRequired()])
-    password = PasswordField('Password (Should have at least one number, have at least one uppercase and one lowercase character, have at least one special symbol, be between 6 to 20 characters long)', [
+    password = PasswordField('Password (Should have at least one number, have at least one uppercase and one lowercase character, '
+                             'have at least one special symbol, be between 6 to 20 characters long)', [
         validators.InputRequired(),
         validators.EqualTo('confirm', message='Passwords must match')
     ])
