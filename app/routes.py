@@ -382,8 +382,8 @@ def evidence():
     id = ObjectId(request.args.get('id'))
     if request.method == "POST":
         ev = request.form['evidence']
-        print(ev)
-        applic.update_one({'_id': id}, {"$set": {'evidence': ev}})
+
+        applic.update_one({'_id': id}, {"$set": {'evidence': applic.find_one({'_id': id})['evidence'] + ', ' + ev}})
         return redirect(url_for('profile'))
 
 @app.route('/logout/')
