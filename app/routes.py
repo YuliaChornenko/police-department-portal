@@ -34,6 +34,14 @@ applic = applic['applications']
 def index():
     return render_template('index.html')
 
+@app.route('/index1')
+def index1():
+    return render_template('index1.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
 @app.route('/uploads', methods=['GET', 'POST'])
 def download():
     return send_file('files/application_templates.pdf', as_attachment=True)
