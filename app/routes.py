@@ -196,6 +196,7 @@ def applications():
             'history': history,
             'check': check,
             'status': status,
+            'evidence': ''
         })
 
         flash('Thanks for application!')
@@ -315,7 +316,7 @@ def send_precinct():
         sessionkey = Random.new().read(32)
         iv = Random.new().read(16)
         obj = AES.new(sessionkey, AES.MODE_CFB, iv)
-        ciphertext = iv + obj.encrypt(bytes(text, encoding='ascii')) #bytes encoding
+        ciphertext = iv + obj.encrypt(bytes(text, encoding='ascii'))
         ciphertext = bytes(ciphertext)
         sessionkey = cipherrsa.encrypt(sessionkey)
         sessionkey = bytes(sessionkey)
@@ -327,7 +328,7 @@ def send_precinct():
         flash('You sent the application!')
 
     elif session['rank'] == 'worker3':
-        applic.update_one({'_id': id}, {"$set": {'check': None , 'level': 'end', 'status': 'Finished'}})
+        applic.update_one({'_id': id}, {"$set": {'check': None, 'level': 'end', 'status': 'Finished'}})
         flash('You finished this case!')
     return redirect('/profile')
 
@@ -341,9 +342,8 @@ def delete():
 @app.route('/close')
 def close():
     id = ObjectId(request.args.get('id'))
-    applic.update_one({'_id': id},
-                          {"$set": {'check': None, 'level': 'end', 'status': 'Closed'}})
-    flash("You closed the case!")
+    applic.update_one({'_id': id}, {"$set": {'check': None, 'level': 'worker1', 'status': 'Open'}})
+    flash("You returned the case!")
     return redirect('/profile')
 
 @app.route('/choose_investigator')
@@ -376,6 +376,15 @@ def login():
                 return redirect(url_for('login'))
 
     return render_template('login.html', title='Sign In', form=form)
+
+@app.route('/evidence', methods=["GET", "POST"])
+def evidence():
+    id = ObjectId(request.args.get('id'))
+    if request.method == "POST":
+        ev = request.form['evidence']
+        print(ev)
+        applic.update_one({'_id': id}, {"$set": {'evidence': ev}})
+        return redirect(url_for('profile'))
 
 @app.route('/logout/')
 def logout():

@@ -66,6 +66,7 @@
                <li class="list-group-item">Checker: {{ data['check'] }}</li>
                <li class="list-group-item">Classifier: {{ data['classifier'] }}</li>
                <li class="list-group-item">History of check: {{ data['history'] }}</li>
+               <li class="list-group-item">Evidence: {{data['evidence']}}</li>
                <li class="list-group-item"><div align='center' ><a href="{{ url_for('check_precinct', text=data['application'], id=data['_id']) }}" type="button" class="btn btn-outline-success btn-lg">Check</a><a href="{{ url_for('delete', text=data['application']) }}" type="button" class="btn btn-outline-danger btn-lg">Delete</a></div></li>
            </ul>
            </div>
@@ -91,6 +92,13 @@
                <li class="list-group-item">Checker: {{ data['check'] }}</li>
                <li class="list-group-item">Classifier: {{ data['classifier'] }}</li>
                <li class="list-group-item">History of check: {{ data['history'] }}</li>
+               <li class="list-group-item">Evidence: {{data['evidence']}}</li>
+               {% if investigator %}
+               <form action="{{ url_for('evidence', id=data['_id'])}}" method="post">
+                   <input type="text" name="evidence">
+                   <input type="submit">
+               </form>
+               {% endif %}
                {% if precinct %}
                <li class="list-group-item">
                     <div align="center">
@@ -111,7 +119,7 @@
                <li class="list-group-item"><div align='center' ><a href="{{ url_for('send_precinct', text=data['application'], id=data['_id']) }}" type="button" class="btn btn-outline-success btn-lg">Send</a><a href="{{ url_for('delete', text=data['application']) }}" type="button" class="btn btn-outline-danger btn-lg">Delete</a></div></li>
                {% endif %}
                {% if prosecutor %}
-               <li class="list-group-item"><div align='center' ><a href="{{ url_for('send_precinct', text=data['application'], id=data['_id']) }}" type="button" class="btn btn-outline-success btn-lg">Finish</a><a href="{{ url_for('close', text=data['application']) }}" type="button" class="btn btn-outline-danger btn-lg">Close</a></div></li>
+               <li class="list-group-item"><div align='center' ><a href="{{ url_for('send_precinct', text=data['application'], id=data['_id']) }}" type="button" class="btn btn-outline-success btn-lg">Finish</a><a href="{{ url_for('close', text=data['application'], id=data['_id']) }}" type="button" class="btn btn-outline-danger btn-lg">Return</a></div></li>
                {% endif %}
            </ul>
 
