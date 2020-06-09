@@ -25,9 +25,9 @@ class RegistrationForm(FlaskForm):
 
 class ApplicationForm(FlaskForm):
     first_name = StringField('First name', [validators.Length(min=4, max=60)])
-    second_name = StringField('Second name', [validators.Length(min=4, max=60)])
+    second_name = StringField('Last name', [validators.Length(min=4, max=60)])
     phone = StringField('Phone')
     location = StringField('Location')
-    application = TextAreaField('Application')
+    application = TextAreaField('Details of incident')
     accept_tos = BooleanField('I consent to the processing of my data',
                               [DataRequired()])
