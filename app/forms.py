@@ -19,7 +19,7 @@ class RegistrationForm(FlaskForm):
         validators.EqualTo('confirm', message='Passwords must match')
     ])
     confirm = PasswordField('Repeat Password')
-    key = StringField('Key')
+    key = StringField('Secret code')
     accept_tos = BooleanField('I consent to the processing of my data',
                               [DataRequired()])
 
