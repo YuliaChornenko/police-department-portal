@@ -19,7 +19,7 @@
                     <li class="list-group-item">Checker: {{ open['check'] }}</li>
                     <li class="list-group-item">Classifier: {{ open['classifier'] }}</li>
                     <li class="list-group-item">History of check: {{ open['history'] }}</li>
-                    <li class="list-group-item"><div align='center' ><a href="{{ url_for('delete', text=open['application'], id=finished['_id']) }}" type="button" class="btn btn-outline-danger btn-lg">Delete</a></div></li>
+                    <li class="list-group-item"><div align='center' ><a href="{{ url_for('delete1', text=open['application'], id=open['_id']) }}" type="button" class="btn btn-outline-danger btn-lg">Delete</a></div></li>
                 </ul>
             </div>
             <p>   </p>
@@ -41,7 +41,7 @@
                 <li class="list-group-item">Checker: {{ finished['check'] }}</li>
                 <li class="list-group-item">Classifier: {{ finished['classifier'] }}</li>
                 <li class="list-group-item">History of check: {{ finished['history'] }}</li>
-                <li class="list-group-item"><div align='center' ><a href="{{ url_for('delete', text=finished['application'], id=finished['_id']) }}" type="button" class="btn btn-outline-danger btn-lg">Delete</a></div></li>
+                <li class="list-group-item"><div align='center' ><a href="{{ url_for('delete1', text=finished['application'], id=finished['_id']) }}" type="button" class="btn btn-outline-danger btn-lg">Delete</a></div></li>
             </ul>
         </div>
         <p>   </p>

@@ -84,8 +84,6 @@ def database():
             open.append(data)
         elif data['status'] == 'Finished':
             finished.append(data)
-        elif data['status'] == 'Closed':
-            closed.append(data)
 
     return render_template('database.html', open=open, finished=finished, closed=closed)
 
@@ -338,6 +336,13 @@ def delete():
     applic.delete_one({'_id': id})
     flash("You deleted the application!")
     return redirect('/profile')
+
+@app.route('/delete1')
+def delete1():
+    id = ObjectId(request.args.get('id'))
+    applic.delete_one({'_id': id})
+    flash("You deleted the application!")
+    return redirect('/database')
 
 @app.route('/close')
 def close():
